@@ -43,8 +43,8 @@
         }
 
         #jimmy-nose {
-            position: relative;
-            top: 50%;
+            position: absolute;
+            top: 42%;
             left: 50%;
             transform: translate(-50%, -50%);
             width: 30px;
@@ -104,6 +104,22 @@
         #play-again {
             left: 20px;
         }
+
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: red;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border: 2px solid #000;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -112,7 +128,10 @@
         <div id="jimmy">
             <div id="jimmy-nose"></div>
         </div>
-        <div id="ring" class="ring" style="top: 90%; left: 10%;"></div>
+        <div id="game-over">
+            Game Over!<br>
+            Your Score: <span id="final-score"></span>
+        </div>
         <button id="share-score">Share Score</button>
         <button id="play-again">Play Again</button>
     </div>
@@ -125,6 +144,8 @@
         const startButton = document.getElementById('start-button');
         const shareScoreButton = document.getElementById('share-score');
         const playAgainButton = document.getElementById('play-again');
+        const gameOverOverlay = document.getElementById('game-over');
+        const finalScore = document.getElementById('final-score');
         let score = 0;
         let isDragging = false;
         let currentRing;
@@ -136,7 +157,7 @@
             createNewRing();
         });
 
-        // Create a new ring with a random color
+        // Create a new ring
         function createNewRing() {
             currentRing = document.createElement('div');
             currentRing.classList.add('ring');
@@ -148,32 +169,48 @@
             addDragLogic(currentRing);
         }
 
-        // Add drag and drop functionality to a ring
+        // Add drag and drop functionality
         function addDragLogic(ring) {
-            ring.addEventListener('mousedown', () => {
-                isDragging = true;
-                ring.style.cursor = 'grabbing';
-            });
-
-            document.addEventListener('mousemove', (e) => {
+            const onMouseMove = (e) => {
                 if (isDragging) {
-                    const x = e.clientX - gameContainer.offsetLeft - ring.offsetWidth / 2;
-                    const y = e.clientY - gameContainer.offsetTop - ring.offsetHeight / 2;
+                    const x = Math.max(
+                        0,
+                        Math.min(
+                            e.clientX - gameContainer.offsetLeft - ring.offsetWidth / 2,
+                            gameContainer.offsetWidth - ring.offsetWidth
+                        )
+                    );
+                    const y = Math.max(
+                        0,
+                        Math.min(
+                            e.clientY - gameContainer.offsetTop - ring.offsetHeight / 2,
+                            gameContainer.offsetHeight - ring.offsetHeight
+                        )
+                    );
                     ring.style.left = `${x}px`;
                     ring.style.top = `${y}px`;
                 }
-            });
+            };
 
-            document.addEventListener('mouseup', () => {
+            const onMouseUp = () => {
                 if (isDragging) {
                     isDragging = false;
                     ring.style.cursor = 'grab';
                     checkRingPlacement(ring);
                 }
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            ring.addEventListener('mousedown', () => {
+                isDragging = true;
+                ring.style.cursor = 'grabbing';
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
             });
         }
 
-        // Check if the ring is placed on Jimmy's nose
+        // Check ring placement
         function checkRingPlacement(ring) {
             const noseRect = jimmyNose.getBoundingClientRect();
             const ringRect = ring.getBoundingClientRect();
@@ -186,20 +223,23 @@
             ) {
                 score++;
                 scoreDisplay.textContent = `Score: ${score}`;
-                ring.style.pointerEvents = 'none'; // Make the ring immovable
-                createNewRing();
+                ring.style.pointerEvents = 'none'; // Lock ring in place
+                ring.style.cursor = 'default';
 
                 if (score >= 10) {
                     endGame();
+                } else {
+                    createNewRing();
                 }
             }
         }
 
         // End the game
         function endGame() {
+            finalScore.textContent = score;
+            gameOverOverlay.style.display = 'block';
             shareScoreButton.style.display = 'block';
             playAgainButton.style.display = 'block';
-            alert(`Game Over! Your score is ${score}`);
         }
 
         // Play again logic
@@ -207,15 +247,10 @@
             score = 0;
             scoreDisplay.textContent = `Score: ${score}`;
             document.querySelectorAll('.ring').forEach(ring => ring.remove());
+            gameOverOverlay.style.display = 'none';
             shareScoreButton.style.display = 'none';
             playAgainButton.style.display = 'none';
             createNewRing();
-        });
-
-        // Share score on Twitter
-        shareScoreButton.addEventListener('click', () => {
-            const url = `https://twitter.com/intent/tweet?text=I scored ${score} points in the Ring Toss Game! Can you beat me?`;
-            window.open(url, '_blank');
         });
 
         // Generate a random color
