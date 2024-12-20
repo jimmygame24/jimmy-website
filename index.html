@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ring Toss Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #87CEEB;
+        }
+
+        #game-container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            background-color: #f4f4f4;
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        #jimmy {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 180px;
+            background-color: #ffe5b4;
+            border: 2px solid #000;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        #jimmy-face {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+            border-radius: 50%;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #jimmy-nose {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            background-color: #ffe5b4;
+            border: 2px solid #000;
+            border-radius: 50%;
+            bottom: 20px;
+        }
+
+        #ring {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #FF6347;
+            border-radius: 50%;
+            background-color: transparent;
+            cursor: grab;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #start-button, #share-score {
+            position: absolute;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #start-button {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        #share-score {
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: #fff;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="score">Score: 0</div>
+        <div id="jimmy">
+            <div id="jimmy-face">
+                <div id="jimmy-nose"></div>
+            </div>
+        </div>
+        <div id="ring" draggable="true"></div>
+        <button id="share-score">Share Score</button>
+    </div>
+    <button id="start-button">Start Game</button>
+
+    <script>
+        const ring = document.getElementById('ring');
+        const jimmyNose = document.getElementById('jimmy-nose');
+        const scoreDisplay = document.getElementById('score');
+        const gameContainer = document.getElementById('game-container');
+        const startButton = document.getElementById('start-button');
+        const shareScoreButton = document.getElementById('share-score');
+        let score = 0;
+
+        startButton.addEventListener('click', () => {
+            gameContainer.style.display = 'block';
+            startButton.style.display = 'none';
+        });
+
+        ring.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', '');
+        });
+
+        ring.addEventListener('dragend', (e) => {
+            const rect = jimmyNose.getBoundingClientRect();
+            const ringRect = ring.getBoundingClientRect();
+
+            if (
+                ringRect.left >= rect.left &&
+                ringRect.right <= rect.right &&
+                ringRect.top >= rect.top &&
+                ringRect.bottom <= rect.bottom
+            ) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                resetRingPosition();
+
+                if (score >= 10) { // Example winning condition
+                    endGame();
+                }
+            }
+        });
+
+        function resetRingPosition() {
+            ring.style.left = '50%';
+            ring.style.top = '50%';
+            ring.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function endGame() {
+            shareScoreButton.style.display = 'block';
+            alert(`Game Over! Your score is ${score}`);
+        }
+
+        document.getElementById('game-container').addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const x = e.clientX - ring.offsetWidth / 2;
+            const y = e.clientY - ring.offsetHeight / 2;
+            ring.style.left = `${x}px`;
+            ring.style.top = `${y}px`;
+        });
+
+        shareScoreButton.addEventListener('click', () => {
+            const url = `https://twitter.com/intent/tweet?text=I scored ${score} points in the Ring Toss Game! Can you beat me?`; // Example Twitter sharing
+            window.open(url, '_blank');
+        });
+
+        resetRingPosition();
+    </script>
+</body>
+</html>
