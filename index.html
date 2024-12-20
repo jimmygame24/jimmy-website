@@ -169,21 +169,25 @@
             addDragLogic(currentRing);
         }
 
-        // Add drag and drop functionality
+        // Add drag-and-drop functionality
         function addDragLogic(ring) {
-            const onMouseMove = (e) => {
+            const onMove = (e) => {
                 if (isDragging) {
                     const x = Math.max(
                         0,
                         Math.min(
-                            e.clientX - gameContainer.offsetLeft - ring.offsetWidth / 2,
+                            (e.touches ? e.touches[0].clientX : e.clientX) -
+                                gameContainer.offsetLeft -
+                                ring.offsetWidth / 2,
                             gameContainer.offsetWidth - ring.offsetWidth
                         )
                     );
                     const y = Math.max(
                         0,
                         Math.min(
-                            e.clientY - gameContainer.offsetTop - ring.offsetHeight / 2,
+                            (e.touches ? e.touches[0].clientY : e.clientY) -
+                                gameContainer.offsetTop -
+                                ring.offsetHeight / 2,
                             gameContainer.offsetHeight - ring.offsetHeight
                         )
                     );
@@ -192,21 +196,30 @@
                 }
             };
 
-            const onMouseUp = () => {
+            const onEnd = () => {
                 if (isDragging) {
                     isDragging = false;
                     ring.style.cursor = 'grab';
                     checkRingPlacement(ring);
                 }
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
             };
 
             ring.addEventListener('mousedown', () => {
                 isDragging = true;
                 ring.style.cursor = 'grabbing';
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onEnd);
+            });
+
+            ring.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                ring.style.cursor = 'grabbing';
+                document.addEventListener('touchmove', onMove);
+                document.addEventListener('touchend', onEnd);
             });
         }
 
