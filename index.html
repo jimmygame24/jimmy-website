@@ -33,9 +33,9 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
-            height: 180px;
-            background-image: url('assets/images.jpg'); /* Use the uploaded image */
+            width: 200px;
+            height: 300px;
+            background-image: url('images.jpg'); /* Use the uploaded image */
             background-size: cover;
             background-position: center;
             border: 2px solid #000;
@@ -48,8 +48,8 @@
 
         #jimmy-face {
             position: relative;
-            width: 100px;
-            height: 100px;
+            width: 150px;
+            height: 150px;
             background-color: transparent; /* Removed placeholder */
             border-radius: 50%;
             margin-top: 10px;
@@ -121,7 +121,7 @@
                 <div id="jimmy-nose"></div>
             </div>
         </div>
-        <div id="ring" draggable="true"></div>
+        <div id="ring"></div>
         <button id="share-score">Share Score</button>
     </div>
     <button id="start-button">Start Game</button>
@@ -134,17 +134,36 @@
         const startButton = document.getElementById('start-button');
         const shareScoreButton = document.getElementById('share-score');
         let score = 0;
+        let isDragging = false;
 
         startButton.addEventListener('click', () => {
             gameContainer.style.display = 'block';
             startButton.style.display = 'none';
         });
 
-        ring.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', '');
+        ring.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            ring.style.cursor = 'grabbing';
         });
 
-        ring.addEventListener('dragend', (e) => {
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const x = e.clientX - ring.offsetWidth / 2;
+                const y = e.clientY - ring.offsetHeight / 2;
+                ring.style.left = `${x}px`;
+                ring.style.top = `${y}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                ring.style.cursor = 'grab';
+                checkRingPlacement();
+            }
+        });
+
+        function checkRingPlacement() {
             const rect = jimmyNose.getBoundingClientRect();
             const ringRect = ring.getBoundingClientRect();
 
@@ -162,7 +181,7 @@
                     endGame();
                 }
             }
-        });
+        }
 
         function resetRingPosition() {
             ring.style.left = '50%';
@@ -174,14 +193,6 @@
             shareScoreButton.style.display = 'block';
             alert(`Game Over! Your score is ${score}`);
         }
-
-        document.getElementById('game-container').addEventListener('dragover', (e) => {
-            e.preventDefault();
-            const x = e.clientX - ring.offsetWidth / 2;
-            const y = e.clientY - ring.offsetHeight / 2;
-            ring.style.left = `${x}px`;
-            ring.style.top = `${y}px`;
-        });
 
         shareScoreButton.addEventListener('click', () => {
             const url = `https://twitter.com/intent/tweet?text=I scored ${score} points in the Ring Toss Game! Can you beat me?`; // Example Twitter sharing
