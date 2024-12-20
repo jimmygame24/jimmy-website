@@ -30,46 +30,35 @@
 
         #jimmy {
             position: absolute;
-            bottom: 20px;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
             width: 200px;
             height: 300px;
-            background-image: url('assets/images.jpg'); /* Use the uploaded image */
+            background-image: url('assets/images.jpg'); /* Use your image path here */
             background-size: cover;
             background-position: center;
             border: 2px solid #000;
             border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        #jimmy-face {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            background-color: transparent;
-            border-radius: 50%;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         #jimmy-nose {
             position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             width: 40px;
             height: 60px;
             background-color: #ffe5b4;
             border: 2px solid #000;
             border-radius: 50%;
-            bottom: 20px;
         }
 
         #ring {
             position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             width: 60px;
             height: 60px;
             border: 5px solid #FF6347;
@@ -117,9 +106,7 @@
     <div id="game-container">
         <div id="score">Score: 0</div>
         <div id="jimmy">
-            <div id="jimmy-face">
-                <div id="jimmy-nose"></div>
-            </div>
+            <div id="jimmy-nose"></div>
         </div>
         <div id="ring"></div>
         <button id="share-score">Share Score</button>
@@ -143,15 +130,15 @@
         });
 
         // Drag and drop logic
-        ring.addEventListener('mousedown', (e) => {
+        ring.addEventListener('mousedown', () => {
             isDragging = true;
             ring.style.cursor = 'grabbing';
         });
 
         document.addEventListener('mousemove', (e) => {
             if (isDragging) {
-                const x = e.clientX - ring.offsetWidth / 2;
-                const y = e.clientY - ring.offsetHeight / 2;
+                const x = e.clientX - gameContainer.offsetLeft - ring.offsetWidth / 2;
+                const y = e.clientY - gameContainer.offsetTop - ring.offsetHeight / 2;
                 ring.style.left = `${x}px`;
                 ring.style.top = `${y}px`;
             }
@@ -167,32 +154,27 @@
 
         // Check if the ring is on Jimmy's nose
         function checkRingPlacement() {
-            const rect = jimmyNose.getBoundingClientRect();
+            const noseRect = jimmyNose.getBoundingClientRect();
             const ringRect = ring.getBoundingClientRect();
 
-            console.log("Ring Position:", ringRect);
-            console.log("Nose Position:", rect);
-
+            // Collision detection
             if (
-                ringRect.left >= rect.left &&
-                ringRect.right <= rect.right &&
-                ringRect.top >= rect.top &&
-                ringRect.bottom <= rect.bottom
+                ringRect.left < noseRect.right &&
+                ringRect.right > noseRect.left &&
+                ringRect.top < noseRect.bottom &&
+                ringRect.bottom > noseRect.top
             ) {
-                console.log("Ring successfully placed on the nose!");
                 score++;
                 scoreDisplay.textContent = `Score: ${score}`;
                 resetRingPosition();
 
-                if (score >= 10) { // Example winning condition
+                if (score >= 10) { // Winning condition
                     endGame();
                 }
-            } else {
-                console.log("Missed the nose!");
             }
         }
 
-        // Reset ring to the center
+        // Reset the ring to the center
         function resetRingPosition() {
             ring.style.left = '50%';
             ring.style.top = '50%';
