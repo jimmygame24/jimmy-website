@@ -14,6 +14,7 @@
             align-items: center;
             height: 100vh;
             background-color: #87CEEB;
+            overflow: hidden; /* Prevent page scrolling */
         }
 
         #game-container {
@@ -172,6 +173,7 @@
         // Add drag-and-drop functionality
         function addDragLogic(ring) {
             const onMove = (e) => {
+                e.preventDefault(); // Prevent page scrolling
                 if (isDragging) {
                     const x = Math.max(
                         0,
@@ -208,7 +210,8 @@
                 document.removeEventListener('touchend', onEnd);
             };
 
-            ring.addEventListener('mousedown', () => {
+            ring.addEventListener('mousedown', (e) => {
+                e.preventDefault();
                 isDragging = true;
                 ring.style.cursor = 'grabbing';
                 document.addEventListener('mousemove', onMove);
@@ -216,9 +219,10 @@
             });
 
             ring.addEventListener('touchstart', (e) => {
+                e.preventDefault();
                 isDragging = true;
                 ring.style.cursor = 'grabbing';
-                document.addEventListener('touchmove', onMove);
+                document.addEventListener('touchmove', onMove, { passive: false });
                 document.addEventListener('touchend', onEnd);
             });
         }
