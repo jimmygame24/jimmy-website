@@ -45,22 +45,20 @@
         #jimmy-nose {
             position: relative;
             top: 50%;
-            left: 55%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            width: 25px;
+            width: 30px;
             height: 40px;
             background-color: #ffe5b4;
             border: 2px solid #000;
             border-radius: 50%;
         }
 
-        #ring {
+        .ring {
             position: absolute;
-            top: 90%;
-            left: 10%;
             width: 80px;
             height: 80px;
-            border: 5px solid #FF6347;
+            border: 5px solid;
             border-radius: 50%;
             background-color: transparent;
             cursor: grab;
@@ -114,14 +112,13 @@
         <div id="jimmy">
             <div id="jimmy-nose"></div>
         </div>
-        <div id="ring"></div>
+        <div id="ring" class="ring" style="top: 90%; left: 10%;"></div>
         <button id="share-score">Share Score</button>
         <button id="play-again">Play Again</button>
     </div>
     <button id="start-button">Start Game</button>
 
     <script>
-        const ring = document.getElementById('ring');
         const jimmyNose = document.getElementById('jimmy-nose');
         const scoreDisplay = document.getElementById('score');
         const gameContainer = document.getElementById('game-container');
@@ -130,42 +127,57 @@
         const playAgainButton = document.getElementById('play-again');
         let score = 0;
         let isDragging = false;
+        let currentRing;
 
-        // Show game container on start
+        // Start game logic
         startButton.addEventListener('click', () => {
             gameContainer.style.display = 'block';
             startButton.style.display = 'none';
+            createNewRing();
         });
 
-        // Drag and drop logic
-        ring.addEventListener('mousedown', () => {
-            isDragging = true;
-            ring.style.cursor = 'grabbing';
-        });
+        // Create a new ring with a random color
+        function createNewRing() {
+            currentRing = document.createElement('div');
+            currentRing.classList.add('ring');
+            currentRing.style.borderColor = getRandomColor();
+            currentRing.style.top = '90%';
+            currentRing.style.left = '10%';
+            gameContainer.appendChild(currentRing);
 
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                const x = e.clientX - gameContainer.offsetLeft - ring.offsetWidth / 2;
-                const y = e.clientY - gameContainer.offsetTop - ring.offsetHeight / 2;
-                ring.style.left = `${x}px`;
-                ring.style.top = `${y}px`;
-            }
-        });
+            addDragLogic(currentRing);
+        }
 
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                ring.style.cursor = 'grab';
-                checkRingPlacement();
-            }
-        });
+        // Add drag and drop functionality to a ring
+        function addDragLogic(ring) {
+            ring.addEventListener('mousedown', () => {
+                isDragging = true;
+                ring.style.cursor = 'grabbing';
+            });
 
-        // Check if the ring is on Jimmy's nose
-        function checkRingPlacement() {
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const x = e.clientX - gameContainer.offsetLeft - ring.offsetWidth / 2;
+                    const y = e.clientY - gameContainer.offsetTop - ring.offsetHeight / 2;
+                    ring.style.left = `${x}px`;
+                    ring.style.top = `${y}px`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    ring.style.cursor = 'grab';
+                    checkRingPlacement(ring);
+                }
+            });
+        }
+
+        // Check if the ring is placed on Jimmy's nose
+        function checkRingPlacement(ring) {
             const noseRect = jimmyNose.getBoundingClientRect();
             const ringRect = ring.getBoundingClientRect();
 
-            // Collision detection
             if (
                 ringRect.left < noseRect.right &&
                 ringRect.right > noseRect.left &&
@@ -174,18 +186,13 @@
             ) {
                 score++;
                 scoreDisplay.textContent = `Score: ${score}`;
-                resetRingPosition();
+                ring.style.pointerEvents = 'none'; // Make the ring immovable
+                createNewRing();
 
-                if (score >= 10) { // Winning condition
+                if (score >= 10) {
                     endGame();
                 }
             }
-        }
-
-        // Reset the ring to the starting position
-        function resetRingPosition() {
-            ring.style.left = '10%';
-            ring.style.top = '90%';
         }
 
         // End the game
@@ -195,23 +202,31 @@
             alert(`Game Over! Your score is ${score}`);
         }
 
-        // Play again functionality
+        // Play again logic
         playAgainButton.addEventListener('click', () => {
             score = 0;
             scoreDisplay.textContent = `Score: ${score}`;
-            resetRingPosition();
+            document.querySelectorAll('.ring').forEach(ring => ring.remove());
             shareScoreButton.style.display = 'none';
             playAgainButton.style.display = 'none';
+            createNewRing();
         });
 
         // Share score on Twitter
         shareScoreButton.addEventListener('click', () => {
-            const url = `https://twitter.com/intent/tweet?text=I scored ${score} points in the Ring Toss Game! Can you beat me?`; // Example Twitter sharing
+            const url = `https://twitter.com/intent/tweet?text=I scored ${score} points in the Ring Toss Game! Can you beat me?`;
             window.open(url, '_blank');
         });
 
-        // Initialize ring position
-        resetRingPosition();
+        // Generate a random color
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
     </script>
 </body>
 </html>
